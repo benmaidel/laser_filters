@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2008, Willow Garage, Inc.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  *     * Redistributions of source code must retain the above copyright
  *       notice, this list of conditions and the following disclaimer.
  *     * Redistributions in binary form must reproduce the above copyright
@@ -13,7 +13,7 @@
  *     * Neither the name of the Willow Garage, Inc. nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -89,7 +89,9 @@ public:
     tf_filter_.setTolerance(0.03s);
 
     // Advertise output
-    output_pub_ = nh_->create_publisher<sensor_msgs::msg::LaserScan>("output", 1000);
+    rclcpp::PublisherOptions pub_options;
+    pub_options.qos_overriding_options = rclcpp::QosOverridingOptions::with_default_policies();
+    output_pub_ = nh_->create_publisher<sensor_msgs::msg::LaserScan>("output", 1000, pub_options);
 
     std::function<void(const sensor_msgs::msg::LaserScan::SharedPtr)> standard_callback =
       std::bind(&GenericLaserScanFilterNode::foo, this, std::placeholders::_1);
@@ -108,7 +110,7 @@ public:
   {
     // Run the filter chain
     filter_chain_.update (*msg_in, msg_);
-    
+
     // Publish the output
     output_pub_->publish(msg_);
   }

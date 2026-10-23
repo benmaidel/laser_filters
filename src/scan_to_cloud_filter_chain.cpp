@@ -89,6 +89,8 @@ ScanToCloudFilterChain::ScanToCloudFilterChain(
     this->get_node_timers_interface());
   buffer_.setCreateTimerInterface(timer_interface);
 
+  rclcpp::PublisherOptions pub_options;
+  pub_options.qos_overriding_options = rclcpp::QosOverridingOptions::with_default_policies();
   #ifdef RCLCPP_SUPPORTS_MATCHED_CALLBACKS
   if (lazy_subscription_) {
     rclcpp::PublisherOptions pub_options;
@@ -104,11 +106,11 @@ ScanToCloudFilterChain::ScanToCloudFilterChain(
     cloud_pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>(
       "cloud_filtered", 10, pub_options);
   } else {
-    cloud_pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("cloud_filtered", 10);
+    cloud_pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("cloud_filtered", 10, pub_options);
     scan_sub_.subscribe(this, "scan", rmw_qos_profile_sensor_data);
   }
   #else
-  cloud_pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("cloud_filtered", 10);
+  cloud_pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("cloud_filtered", 10, pub_options);
   scan_sub_.subscribe(this, "scan", rmw_qos_profile_sensor_data);
   #endif
 
