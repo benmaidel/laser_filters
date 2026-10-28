@@ -105,13 +105,13 @@ ScanToScanFilterChain::ScanToScanFilterChain(
         }
       };
     output_pub_ = this->create_publisher<sensor_msgs::msg::LaserScan>(
-      "scan_filtered", 1000, pub_options);
+      "scan_filtered", 10, pub_options);
   } else {
-    output_pub_ = this->create_publisher<sensor_msgs::msg::LaserScan>("scan_filtered", 1000, pub_options);
+    output_pub_ = this->create_publisher<sensor_msgs::msg::LaserScan>("scan_filtered", 10, pub_options);
     scan_sub_.subscribe(this, "scan", rmw_qos_profile_sensor_data);
   }
   #else
-  output_pub_ = this->create_publisher<sensor_msgs::msg::LaserScan>("scan_filtered", 1000, pub_options);
+  output_pub_ = this->create_publisher<sensor_msgs::msg::LaserScan>("scan_filtered", 10, pub_options);
   scan_sub_.subscribe(this, "scan", rmw_qos_profile_sensor_data);
   #endif
 }
