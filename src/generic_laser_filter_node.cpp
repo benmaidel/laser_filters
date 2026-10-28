@@ -51,8 +51,8 @@ protected:
   rclcpp::Node::SharedPtr nh_;
 
   // Components for tf::MessageFilter
-  TransformListener tf_;
   tf2_ros::Buffer buffer_;
+  TransformListener tf_;
 
   message_filters::Subscriber<sensor_msgs::msg::LaserScan> scan_sub_;
   tf2_ros::MessageFilter<sensor_msgs::msg::LaserScan> tf_filter_;
@@ -75,8 +75,8 @@ public:
   // Constructor
   GenericLaserScanFilterNode(rclcpp::Node::SharedPtr nh)
       : nh_(nh),
-        tf_(buffer_),
         buffer_(nh_->get_clock()),
+        tf_(buffer_),
         scan_sub_(nh_, "scan", rmw_qos_profile_sensor_data),
         tf_filter_(scan_sub_, buffer_, "base_link", 50, nh_),
         filter_chain_("sensor_msgs::msg::LaserScan")
