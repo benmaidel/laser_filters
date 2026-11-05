@@ -28,7 +28,10 @@
  */
 
 #include <diagnostic_updater/diagnostic_updater.hpp>
+#include <diagnostic_updater/publisher.hpp>
 #include <diagnostic_updater/update_functions.hpp>
+
+#include <memory>
 
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/laser_scan.hpp>
@@ -65,6 +68,13 @@ protected:
   #endif
   std::string tf_message_filter_target_frame_;
   double tf_filter_tolerance_;
+
+  // Rate and stamp delay of the scans in and out of the filter chain (declared before the
+  // updater, so they outlive it)
+  double min_frequency_;
+  double max_frequency_;
+  std::unique_ptr<diagnostic_updater::TopicDiagnostic> input_diagnostics_;
+  std::unique_ptr<diagnostic_updater::TopicDiagnostic> output_diagnostics_;
 
   // Diagnostic updater
   diagnostic_updater::Heartbeat heartbeat_diagnostics_;

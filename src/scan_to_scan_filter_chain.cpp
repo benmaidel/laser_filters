@@ -30,6 +30,8 @@
 
 #include "scan_to_scan_filter_chain.hpp"
 
+#include <limits>
+
 
 // Constructor
 ScanToScanFilterChain::ScanToScanFilterChain(
@@ -60,6 +62,7 @@ ScanToScanFilterChain::ScanToScanFilterChain(
   #endif
   this->declare_parameter("tf_message_filter_target_frame", "", read_only_desc);
   this->declare_parameter("tf_message_filter_tolerance", 0.03, read_only_desc);
+  this->declare_parameter("expected_frequency", 0.0, read_only_desc);
 
   // Get parameters
   #ifdef RCLCPP_SUPPORTS_MATCHED_CALLBACKS
@@ -67,6 +70,20 @@ ScanToScanFilterChain::ScanToScanFilterChain(
   #endif
   this->get_parameter("tf_message_filter_target_frame", tf_message_filter_target_frame_);
   this->get_parameter("tf_message_filter_tolerance", tf_filter_tolerance_);
+  double expected_frequency = this->get_parameter("expected_frequency").as_double();
+
+  // Topic diagnostics. Without an expected frequency they only report the actual one.
+  min_frequency_ = expected_frequency;
+  max_frequency_ = expected_frequency > 0.0 ?
+    expected_frequency : std::numeric_limits<double>::infinity();
+  diagnostic_updater::FrequencyStatusParam frequency(&min_frequency_, &max_frequency_);
+  auto topics = this->get_node_topics_interface();
+  input_diagnostics_ = std::make_unique<diagnostic_updater::TopicDiagnostic>(
+    topics->resolve_topic_name("scan") + " input", diagnostic_updater_, frequency,
+    diagnostic_updater::TimeStampStatusParam(), this->get_clock());
+  output_diagnostics_ = std::make_unique<diagnostic_updater::TopicDiagnostic>(
+    topics->resolve_topic_name("scan_filtered") + " output", diagnostic_updater_, frequency,
+    diagnostic_updater::TimeStampStatusParam(), this->get_clock());
 
   if (!tf_message_filter_target_frame_.empty()) {
     tf_.reset(new tf2_ros::TransformListener(buffer_));
@@ -131,10 +148,13 @@ ScanToScanFilterChain::~ScanToScanFilterChain()
 void ScanToScanFilterChain::callback(
   const std::shared_ptr<const sensor_msgs::msg::LaserScan> & msg_in)
 {
+  input_diagnostics_->tick(msg_in->header.stamp);
+
   // Run the filter chain
   if (filter_chain_.update(*msg_in, msg_)) {
     //only publish result if filter succeeded
     output_pub_->publish(msg_);
+    output_diagnostics_->tick(msg_.header.stamp);
   }
 }
 
